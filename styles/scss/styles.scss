@@ -1,0 +1,370 @@
+@import "setup";
+@import "variable";
+@import "mixins";
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	font-size: 62.5%;
+}
+
+body {
+	font-size: 1.5rem;
+	background-image: url(../images/whiteTexture.jpg);
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-attachment: fixed;
+	position: relative;
+}
+
+.skip-link {
+	position: absolute;
+	left: -1000px;
+	top: 5px;
+	z-index: 999;
+	background: white;
+	color: black;
+}
+
+.skip-link:focus {
+	left: 0;
+}
+
+.wrapper {
+	width: 90%;
+	margin: 0 auto;
+	max-width: 1280px;
+}
+
+section {
+	padding: 30px 0;
+}
+
+img {
+	width: 100%;
+	display: block;
+	object-fit: cover;
+}
+
+a {
+	display: inline-block;
+	text-decoration: none;
+}
+
+// CSS Styling goes here
+
+button {
+	height: auto;
+	display: inline-block;
+}
+
+h3 {
+	display: none;
+	margin-bottom: 30px;
+}
+
+// Header
+
+header {
+	padding-top: 130px;
+}
+
+h1 {
+	@include header();
+	animation: text-shadow-drop-bl 0.6s both;
+}
+
+@keyframes text-shadow-drop-bl {
+	0% {
+		text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+	}
+	100% {
+		text-shadow: -6px 6px 18px rgba(0, 0, 0, 0.75);
+	}
+}
+
+header p {
+	@include para();
+	color: $primaryColor;
+	text-align: center;
+	font-weight: 600;
+	font-size: 25px;
+}
+
+/* Form */
+
+form {
+	text-align: center;
+}
+
+#search {
+	width: calc(40% - 10px);
+	margin-right: 10px;
+	height: 40px;
+	border-radius: 20px;
+	padding-left: 40px;
+	border: 2px solid $primaryColor;
+	@include para();
+	color: $primaryColor;
+	line-height: 0;
+}
+
+input[type="submit"] {
+	width: calc(15% - 10px);
+	margin-left: 10px;
+	height: 40px;
+	border-radius: 20px;
+	border: 2px solid $primaryColor;
+	@include para();
+	color: $primaryColor;
+	cursor: pointer;
+	line-height: 0;
+}
+
+input[type="submit"]:hover,
+input[type="submit"]:focus {
+	background: $primaryColor;
+	color: $hoverColor;
+}
+
+/* Section of Desired word */
+
+.desiredWord {
+	display: flex;
+	padding: 30px 0;
+}
+
+.desiredWord h2 {
+	@include subHeading();
+	margin-right: 50px;
+}
+
+.desiredWord button {
+	width: 15%;
+	border: 2px solid $primaryColor;
+	border-radius: 20px;
+	cursor: pointer;
+	color: $primaryColor;
+}
+
+.desiredWord button:hover,
+.desiredWord button:focus {
+	background: $primaryColor;
+	color: $hoverColor;
+}
+
+.desiredWord i {
+	font-size: 40px;
+}
+
+// section of Results
+
+.results {
+	background: $hoverColor;
+	border: 2px solid $primaryColor;
+	width: 65%;
+	margin: 50px auto;
+	border-radius: 30px;
+	display: none;
+	box-shadow: 0 0 25px 5px #9b9b9b;
+	animation: result-shadow-drop-center 0.6s both;
+}
+
+@keyframes result-shadow-drop-center {
+	0% {
+		text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+	}
+	100% {
+		text-shadow: 0 0 18px rgba(0, 0, 0, 0.35);
+	}
+}
+
+// Section of Definitions and Synonyms
+
+.definitions,
+.synonyms {
+	padding-top: 30px;
+}
+
+.defH3,
+.synH3 {
+	@include headingh3();
+}
+
+.definitionsList,
+.synonymsList {
+	@include para();
+}
+
+/* Image gallery */
+.images {
+	padding-bottom: 7.5%;
+
+	.imageGallery {
+		height: min(31vw, 44vh);
+		display: flex;
+		list-style-type: none;
+		justify-content: center;
+
+		li {
+			display: flex;
+			justify-content: center;
+		}
+
+		img {
+			float: left;
+			width: 90%;
+			height: 80%;
+			box-shadow: 0 10px 50px 5px black;
+		}
+	}
+}
+
+/* Footer */
+
+footer {
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	margin-top: 10%;
+
+	.footerContainer {
+		padding: 0.5% 0;
+		background-color: $primaryColor;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		p {
+			text-align: center;
+			padding-left: max(2%, 1rem);
+			font-family: $secondaryFont;
+			line-height: 2;
+			font-size: 20px;
+			padding-top: 10px;
+			color: $hoverColor;
+		}
+		a {
+			width: max(3%, 3rem);
+		}
+		a:hover,
+		a:focus {
+			outline: 2px solid $hoverColor;
+		}
+	}
+}
+
+// Media Query
+
+@media (max-width: 1040px) {
+	.results {
+		width: 70%;
+	}
+}
+
+@media (max-width: 900px) {
+	header {
+		padding-top: 0px;
+	}
+
+	.results {
+		width: 90%;
+	}
+
+	#search {
+		width: 70%;
+		text-align: center;
+		margin-left: 0;
+		padding-left: 0;
+		margin-bottom: 20px;
+	}
+
+	input[type="submit"] {
+		width: 30%;
+		margin-top: 20px;
+	}
+}
+
+@media screen and (max-width: 865px) {
+	header p {
+		font-size: 20px;
+	}
+}
+
+@media (max-width: 709px) {
+	.results {
+		padding-left: 20px;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.images {
+		.imageGallery {
+			flex-direction: column;
+			justify-content: flex-start;
+			img {
+				width: 60%;
+				height: 25vh;
+				margin-bottom: 5%;
+			}
+			:nth-child(3) img {
+				margin-bottom: 20%;
+			}
+		}
+	}
+
+	footer {
+		position: fixed;
+
+		.footerContainer p {
+			font-size: 15px;
+		}
+	}
+}
+
+@media (max-width: 550px) {
+	h1 {
+		font-size: 50px;
+	}
+
+	.desiredWord h2 {
+		font-size: 40px;
+	}
+	.desiredWord button {
+		width: 25%;
+	}
+	.desiredWord i {
+		font-size: 30px;
+	}
+}
+
+@media screen and (max-width: 375px) {
+	h1 {
+		font-size: 40px;
+	}
+	.desiredWord h2 {
+		font-size: 30px;
+	}
+
+	.defH3,
+	.synH3 {
+		font-size: 20px;
+	}
+
+	.definitionsList,
+	.synonymsList {
+		font-size: 15px;
+	}
+}
+
+@media screen and (max-width: 330px) {
+	footer {
+		.footerContainer p {
+			font-size: 13px;
+		}
+	}
+}

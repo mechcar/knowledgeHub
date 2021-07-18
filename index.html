@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Knowledge Hub!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital@1&family=Open+Sans&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script
+      src="https://kit.fontawesome.com/231b86159a.js"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <a href="#maincontent" class="skip-link">Skip to main content.</a>
+
+    <!-- Heading -->
+    <header>
+      <div class="wrapper">
+        <h1>Knowledge Hub!</h1>
+        <p>Search for a word to return its definition, synonyms and images:</p>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main>
+      <!-- Section of form -->
+      <section class="form">
+        <div class="wrapper">
+          <!-- Form -->
+          <form action="#">
+            <label for="search" class="sr-only"></label>
+            <input
+              type="search"
+              id="search"
+              name="search"
+              placeholder="Search for a word..."
+              autocomplete="off"
+            />
+            <input type="submit" value="Search" />
+          </form>
+        </div>
+      </section>
+
+      <!-- Section of Desired Word H2 -->
+      <section class="results">
+        <div class="wrapper">
+          <div class="desiredWord">
+            <!-- H2 created here to display desired word from search -->
+            <!-- Audio button to play the desired word -->
+          </div>
+        </div>
+
+        <!-- Section of definations -->
+
+        <div class="definitions">
+          <div class="wrapper">
+            <h3 class="defH3">Definitions:</h3>
+            <ul class="definitionsList">
+              <!-- Display definitions in li-->
+            </ul>
+          </div>
+        </div>
+
+        <!-- Section of Synonyms -->
+
+        <div class="synonyms">
+          <div class="wrapper">
+            <h3 class="synH3">Synonyms:</h3>
+            <ul class="synonymsList">
+              <!-- Display synonyms in li -->
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section of Image Gallery -->
+
+      <section class="images">
+        <div class="wrapper">
+          <ul class="imageGallery">
+            <!-- Display images -->
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footerContainer">
+        <a href="https://junocollege.com/"
+          ><img src="./images/juno.jpg" alt="Juno Logo"
+        /></a>
+        <p>Created at Juno College Of Technology</p>
+      </div>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

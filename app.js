@@ -68,8 +68,9 @@ app.getResult = function () {
 			console.log(jsonResult);
 			app.definitions = [];
 			app.footer = document.querySelector("footer");
-			app.footer.style.position = "sticky";
+			app.footer.style.position = "fixed";
 			app.footer.style.bottom = "0";
+
 			for (let i = 0; i < jsonResult.length; i++) {
 				app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
 				// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
@@ -256,6 +257,7 @@ app.displayResult = function (definitionArray, synonymsArray, imageArray) {
 
 		app.imagesList = document.querySelector(".imageGallery");
 		app.imagesList.innerHTML = "";
+		app.imagesList.style.display = "flex";
 
 		for (let i = 0; i < imageArray.length; i++) {
 			let liEl = document.createElement("li");

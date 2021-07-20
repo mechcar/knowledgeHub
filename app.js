@@ -36,12 +36,14 @@ app.getDesiredWord = function () {
 				},
 				icon: "error",
 				iconColor: "#b55656",
-				confirmButtonColor: "#b55656"
+				confirmButtonColor: "#b55656",
 			});
 		}
 
-		app.getResult();
-		app.form.reset();
+		if (app.desiredWord !== "") {
+			app.getResult();
+			app.form.reset();
+		}
 	});
 };
 
@@ -74,94 +76,102 @@ app.getResult = function () {
 			return res.json();
 		})
 		.then(function (jsonResult) {
-			if (jsonResult[0].meta === undefined) {
-				Swal.fire({
-					title: "We could not find that word, try searching for another!",
-					showClass: {
-						popup: "animate__animated animate__fadeInDown",
-					},
-					hideClass: {
-						popup: "animate__animated animate__fadeOutUp",
-					},
-					icon: "error",
-					iconColor: "#b55656",
-					confirmButtonColor: "#b55656",
-				});
-			}
-			app.definitions = [];
 			for (let i = 0; i < jsonResult.length; i++) {
 				// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
 
 				// Example: this returns the first 2 entries from the array of definitions for the word "world" but ignores any other definitions in the array that contain "world" in the meta.id
-				app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
 
 				// If there exists a word with more than one definition of the literal match of the word itself, return all those definitions (Example: "fly")
-				if (jsonResult[i].meta.id.match(app.regexSearch)) {
-					app.definitions.push(jsonResult[i]);
-				}
+				if (jsonResult[i].meta === undefined) {
+					app.desiredWord = "";
+					Swal.fire({
+						title: "We could not find that word, try searching for another!",
+						showClass: {
+							popup: "animate__animated animate__fadeInDown",
+						},
+						hideClass: {
+							popup: "animate__animated animate__fadeOutUp",
+						},
+						icon: "error",
+						iconColor: "#b55656",
+						confirmButtonColor: "#b55656",
+					});
+				} else {
+					app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
+					app.definitions = [];
 
-				// Else, return the sole definition (Example: "apple")
-				else if (jsonResult[i].meta.id === app.desiredWord) {
-					app.definitions.push(jsonResult[i]);
+					if (jsonResult[i].meta.id.match(app.regexSearch)) {
+						app.definitions.push(jsonResult[i]);
+					}
+
+					// Else, return the sole definition (Example: "apple")
+					else if (jsonResult[i].meta.id === app.desiredWord) {
+						app.definitions.push(jsonResult[i]);
+					}
 				}
 			}
-			// console.log(app.definitions);
 			// }
 		})
 		.then(function () {
-			fetch(app.thesaurusURL)
-				.then(function (res) {
-					return res.json();
-				})
-				.then(function (jsonResult) {
-					app.synonyms = [];
+			if (app.definitions !== undefined) {
+				fetch(app.thesaurusURL)
+					.then(function (res) {
+						return res.json();
+					})
+					.then(function (jsonResult) {
+						app.synonyms = [];
 
-					// Error handling for words that return array with similarly spelled words instead of literal synonyms
-					if (typeof jsonResult[0] == "string") {
-						app.synonyms.push(
-							`${capitalize(
-								app.desiredWord
-							)} has no known synonyms to display.`
-						);
-					} else {
-						for (let i = 0; i < jsonResult.length; i++) {
-							// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
-
-							if (jsonResult[i].meta.id.match(app.regexSearch)) {
-								app.synonyms.push(jsonResult);
-							} else if (
-								jsonResult[i].meta.id === app.desiredWord
-							) {
-								app.synonyms.push(jsonResult[i].shortdef[0]);
-							}
-						}
-
-						// Error handling for words with no relevant synonyms
-						if (app.synonyms.length === 0) {
+						// Error handling for words that return array with similarly spelled words instead of literal synonyms
+						if (typeof jsonResult[0] == "string") {
 							app.synonyms.push(
 								`${capitalize(
 									app.desiredWord
 								)} has no known synonyms to display.`
 							);
+						} else {
+							for (let i = 0; i < jsonResult.length; i++) {
+								// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
+
+								if (
+									jsonResult[i].meta.id.match(app.regexSearch)
+								) {
+									app.synonyms.push(jsonResult);
+								} else if (
+									jsonResult[i].meta.id === app.desiredWord
+								) {
+									app.synonyms.push(
+										jsonResult[i].shortdef[0]
+									);
+								}
+							}
+
+							// Error handling for words with no relevant synonyms
+							if (app.synonyms.length === 0) {
+								app.synonyms.push(
+									`${capitalize(
+										app.desiredWord
+									)} has no known synonyms to display.`
+								);
+							}
+							// console.log(app.synonyms);
 						}
-						// console.log(app.synonyms);
-					}
-				})
-				.then(function () {
-					fetch(url)
-						.then(function (res) {
-							return res.json();
-						})
-						.then(function (jsonResult) {
-							app.images = jsonResult.results;
-							// console.log(app.images);
-							app.displayResult(
-								app.definitions,
-								app.synonyms,
-								app.images
-							);
-						});
-				});
+					})
+					.then(function () {
+						fetch(url)
+							.then(function (res) {
+								return res.json();
+							})
+							.then(function (jsonResult) {
+								app.images = jsonResult.results;
+								// console.log(app.images);
+								app.displayResult(
+									app.definitions,
+									app.synonyms,
+									app.images
+								);
+							});
+					});
+			}
 		});
 };
 

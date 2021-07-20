@@ -23,21 +23,10 @@ app.getDesiredWord = function () {
 	// Adding the event listener to the submit button
 	app.form.addEventListener("submit", function (event) {
 		event.preventDefault();
-		app.desiredWord = document.getElementById("search").value;
+		app.desiredWord = document.getElementById("search").value.toLowerCase();
 		// console.log(app.desiredWord);
 		if (app.desiredWord === "") {
-			Swal.fire({
-				title: "Please search for a word and try again!",
-				showClass: {
-					popup: "animate__animated animate__fadeInDown",
-				},
-				hideClass: {
-					popup: "animate__animated animate__fadeOutUp",
-				},
-				icon: "error",
-				iconColor: "#b55656",
-				confirmButtonColor: "#b55656",
-			});
+			emptyQueryErrorMessage();
 		}
 
 		if (app.desiredWord !== "") {
@@ -76,30 +65,48 @@ app.getResult = function () {
 			return res.json();
 		})
 		.then(function (jsonResult) {
+			console.log(jsonResult);
+			app.definitions = [];
+			app.footer = document.querySelector("footer");
+			app.footer.style.position = "sticky";
+			app.footer.style.bottom = "0";
 			for (let i = 0; i < jsonResult.length; i++) {
+				app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
 				// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
 
 				// Example: this returns the first 2 entries from the array of definitions for the word "world" but ignores any other definitions in the array that contain "world" in the meta.id
 
 				// If there exists a word with more than one definition of the literal match of the word itself, return all those definitions (Example: "fly")
-				if (jsonResult[i].meta === undefined) {
+				if (
+					jsonResult[i].meta === undefined ||
+					(jsonResult[0].def !== undefined &&
+						jsonResult[0].def.fl === "abbreviation")
+				) {
 					app.desiredWord = "";
-					Swal.fire({
-						title: "We could not find that word, try searching for another!",
-						showClass: {
-							popup: "animate__animated animate__fadeInDown",
-						},
-						hideClass: {
-							popup: "animate__animated animate__fadeOutUp",
-						},
-						icon: "error",
-						iconColor: "#b55656",
-						confirmButtonColor: "#b55656",
-					});
-				} else {
-					app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
-					app.definitions = [];
+					errorMessage();
+					if (app.results !== undefined) {
+						app.results.style.display = "none";
+						app.imagesList.style.display = "none";
+						app.footer.style.position = "absolute";
 
+						const xl = window.matchMedia("(max-width: 1480px)");
+						const l = window.matchMedia("(max-width: 1280px)");
+						const m = window.matchMedia("(max-width: 768px)");
+						const s = window.matchMedia("(max-width: 425px)");
+
+						if (s.matches) {
+							return (app.footer.style.bottom = "-25.3%");
+						} else if (m.matches) {
+							return (app.footer.style.bottom = "-124.6%");
+						} else if (l.matches) {
+							return (app.footer.style.bottom = "-38%");
+						} else if (xl.matches) {
+							return (app.footer.style.bottom = "-50.5%");
+						}
+					} else {
+						errorMessage();
+					}
+				} else {
 					if (jsonResult[i].meta.id.match(app.regexSearch)) {
 						app.definitions.push(jsonResult[i]);
 					}
@@ -110,10 +117,9 @@ app.getResult = function () {
 					}
 				}
 			}
-			// }
 		})
 		.then(function () {
-			if (app.definitions !== undefined) {
+			if (app.definitions[0] !== undefined) {
 				fetch(app.thesaurusURL)
 					.then(function (res) {
 						return res.json();
@@ -191,63 +197,71 @@ app.displayResult = function (definitionArray, synonymsArray, imageArray) {
 	// Match the first letter of the word
 	const subdirectory = app.desiredWord.charAt(0);
 	//  Match the Id of the word to the  audio sound
-	const audioID = app.definitions[0].hwi.prs[0].sound.audio;
-	app.audioUrl = `https://media.merriam-webster.com/audio/prons/en/us/mp3/${subdirectory}/${audioID}.mp3`;
+	if (app.definitions[0].hwi.prs === undefined) {
+		errorMessage();
+	} else {
+		if (app.definitions[0].hwi.prs[0].sound === undefined) {
+			app.audioID = app.definitions[0].hwi.prs[1].sound.audio;
+		} else {
+			app.audioID = app.definitions[0].hwi.prs[0].sound.audio;
+		}
+		app.audioUrl = `https://media.merriam-webster.com/audio/prons/en/us/mp3/${subdirectory}/${app.audioID}.mp3`;
 
-	const audioButton = document.createElement("button");
-	audioButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+		const audioButton = document.createElement("button");
+		audioButton.innerHTML = '<i class="fas fa-volume-up"></i>';
 
-	audioButton.addEventListener("click", function () {
-		const audio = new Audio(app.audioUrl);
-		audio.play();
-	});
-	app.desiredWordHeader.appendChild(audioButton);
+		audioButton.addEventListener("click", function () {
+			const audio = new Audio(app.audioUrl);
+			audio.play();
+		});
+		app.desiredWordHeader.appendChild(audioButton);
 
-	// Add event listener to play audio file from URL
+		// Add event listener to play audio file from URL
 
-	// displaying the class resultd on page load
+		// displaying the class resultd on page load
 
-	const results = document.querySelector(".results");
-	results.style.display = "block";
+		app.results = document.querySelector(".results");
+		app.results.style.display = "block";
 
-	//   Adding h3 heading for the definitions
-	const definitionsSection = document.querySelector(".defH3");
-	definitionsSection.style.display = "block";
+		//   Adding h3 heading for the definitions
+		app.definitionsSection = document.querySelector(".defH3");
+		app.definitionsSection.style.display = "block";
 
-	const definitionsList = document.querySelector(".definitionsList");
+		app.definitionsList = document.querySelector(".definitionsList");
 
-	//   Adding h3 heading for the synonyms
-	const synonymsSection = document.querySelector(".synH3");
-	synonymsSection.style.display = "block";
+		//   Adding h3 heading for the synonyms
+		app.synonymsSection = document.querySelector(".synH3");
+		app.synonymsSection.style.display = "block";
 
-	const synonymsList = document.querySelector(".synonymsList");
+		app.synonymsList = document.querySelector(".synonymsList");
 
-	definitionsList.innerHTML = "";
-	synonymsList.innerHTML = "";
+		app.definitionsList.innerHTML = "";
+		app.synonymsList.innerHTML = "";
 
-	for (let i = 0; i < definitionArray.length; i++) {
-		let liEl = document.createElement("li");
-		liEl.innerHTML = capitalize(`${definitionArray[i].shortdef}`);
-		definitionsList.appendChild(liEl);
-	}
+		for (let i = 0; i < definitionArray.length; i++) {
+			let liEl = document.createElement("li");
+			liEl.innerHTML = capitalize(`${definitionArray[i].shortdef}`);
+			app.definitionsList.appendChild(liEl);
+		}
 
-	// Add line break between definitions and synonyms
+		// Add line break between definitions and synonyms
 
-	for (let i = 0; i < synonymsArray.length; i++) {
-		let liEl = document.createElement("li");
-		liEl.innerHTML = capitalize(`${synonymsArray[i]}`);
-		synonymsList.appendChild(liEl);
-	}
+		for (let i = 0; i < synonymsArray.length; i++) {
+			let liEl = document.createElement("li");
+			liEl.innerHTML = capitalize(`${synonymsArray[i]}`);
+			app.synonymsList.appendChild(liEl);
+		}
 
-	// Selecting the the ul from the Index.html to display the image result on the page
+		// Selecting the the ul from the Index.html to display the image result on the page
 
-	const imageslist = document.querySelector(".imageGallery");
-	imageslist.innerHTML = "";
+		app.imagesList = document.querySelector(".imageGallery");
+		app.imagesList.innerHTML = "";
 
-	for (let i = 0; i < imageArray.length; i++) {
-		let liEl = document.createElement("li");
-		liEl.innerHTML = `<img src="${imageArray[i].urls.small}" alt="${imageArray[i].alt_description}">`;
-		imageslist.appendChild(liEl);
+		for (let i = 0; i < imageArray.length; i++) {
+			let liEl = document.createElement("li");
+			liEl.innerHTML = `<img src="${imageArray[i].urls.small}" alt="${imageArray[i].alt_description}">`;
+			app.imagesList.appendChild(liEl);
+		}
 	}
 };
 
@@ -256,6 +270,36 @@ app.displayResult = function (definitionArray, synonymsArray, imageArray) {
 // To capitalize strings
 function capitalize(string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function errorMessage() {
+	Swal.fire({
+		title: "We couldn't find that word. Please try again!",
+		showClass: {
+			popup: "animate__animated animate__fadeInDown",
+		},
+		hideClass: {
+			popup: "animate__animated animate__fadeOutUp",
+		},
+		icon: "error",
+		iconColor: "#b55656",
+		confirmButtonColor: "#b55656",
+	});
+}
+
+function emptyQueryErrorMessage() {
+	Swal.fire({
+		title: "No word entered. Please try again!",
+		showClass: {
+			popup: "animate__animated animate__fadeInDown",
+		},
+		hideClass: {
+			popup: "animate__animated animate__fadeOutUp",
+		},
+		icon: "error",
+		iconColor: "#b55656",
+		confirmButtonColor: "#b55656",
+	});
 }
 
 // Kicking off

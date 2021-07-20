@@ -536,10 +536,9 @@ input[type=submit]:focus {
 
 /* Footer */
 footer {
-  position: absolute;
+  position: sticky;
   bottom: 0;
   width: 100%;
-  margin-top: 10%;
 }
 footer .footerContainer {
   padding: 0.5% 0;

@@ -1,87 +1,62 @@
-// MVP:
-//
-// Query user input to determine which word to search
-// Error handling for missing words
-// Fetch dictionary and thesaurus APIs from Merriam-Webster website
-// Access definition and synonyms from JSON object
-// Populate the results section with definition and synonyms
-//
-// Stretch Goals:
-//
-// Add an image of word searched from appropriate API
-// Create small scrolling gallery of available images
-// Offer audible definition when available
+// Built using the Werriam-Webster collegiate dictionary API and Unsplash search images API
 
 const app = {};
 
-// getting the results from the API Call
-
+// Capturing the user's input
 app.getDesiredWord = function () {
 	// Selecting the form element
 	app.form = document.querySelector("form");
 
-	// Adding the event listener to the submit button
+	// Adding a click event listener to the submit button
 	app.form.addEventListener("submit", function (event) {
 		event.preventDefault();
 		app.desiredWord = document.getElementById("search").value.toLowerCase();
-		// console.log(app.desiredWord);
+
+		// Handling an empty string input
 		if (app.desiredWord === "") {
 			emptyQueryErrorMessage();
 		}
 
+		// Proceeding if the user enters some text
 		if (app.desiredWord !== "") {
-			app.getResult();
+			app.fetchDictionary();
 			app.form.reset();
 		}
 	});
 };
 
-app.getResult = function () {
-	// Calling API for defination array
+//
+
+app.fetchDictionary = () => {
+	// Calling API for definitions object
 	app.dictKey = "a9cac565-bc55-4024-9e9a-7f276804fe69";
 	app.dictURL = new URL(
 		`https://www.dictionaryapi.com/api/v3/references/collegiate/json/${app.desiredWord}?key=${app.dictKey}`
 	);
-
-	// Calling API for Thesaurus array
-	app.thesaurusKey = "fb667759-bffa-458e-99cc-52ad3a241442";
-	app.thesaurusURL = new URL(
-		`https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${app.desiredWord}?key=${app.thesaurusKey}`
-	);
-
-	// Calling API for Image Array
-	app.imageKey = "ZszcTbGp8p_fudEWMdnRe90mPPyhfueWD_g4dy24bDE";
-	app.imageUrl = new URL(`https://api.unsplash.com/search/photos`);
-
-	const url = new URL(app.imageUrl);
-	url.search = new URLSearchParams({
-		client_id: app.imageKey,
-		query: `${app.desiredWord}`,
-		per_page: 3,
-	});
 
 	fetch(app.dictURL)
 		.then(function (res) {
 			return res.json();
 		})
 		.then(function (jsonResult) {
-			console.log(jsonResult);
+			app.resultsObject = jsonResult;
 			app.definitions = [];
 			app.footer = document.querySelector("footer");
 			app.footer.style.position = "fixed";
 			app.footer.style.bottom = "0";
 
-			for (let i = 0; i < jsonResult.length; i++) {
+			for (let i = 0; i < app.resultsObject.length; i++) {
 				app.regexSearch = new RegExp(`${app.desiredWord}:\d*?`);
 				// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
 
 				// Example: this returns the first 2 entries from the array of definitions for the word "world" but ignores any other definitions in the array that contain "world" in the meta.id
 
 				// If there exists a word with more than one definition of the literal match of the word itself, return all those definitions (Example: "fly")
+
 				if (
-					jsonResult[i].meta === undefined ||
-					(jsonResult[0].def !== undefined &&
-						jsonResult[0].def.fl === "abbreviation")
+					app.resultsObject[i].meta === undefined ||
+					(app.resultsObject[0].def !== undefined &&
+						app.resultsObject[0].def.fl === "abbreviation")
 				) {
 					app.desiredWord = "";
 					errorMessage();
@@ -108,86 +83,96 @@ app.getResult = function () {
 						errorMessage();
 					}
 				} else {
-					if (jsonResult[i].meta.id.match(app.regexSearch)) {
-						app.definitions.push(jsonResult[i]);
+					if (app.resultsObject[i].meta.id.match(app.regexSearch)) {
+						app.definitions.push(app.resultsObject[i]);
 					}
 
 					// Else, return the sole definition (Example: "apple")
-					else if (jsonResult[i].meta.id === app.desiredWord) {
-						app.definitions.push(jsonResult[i]);
+					else if (app.resultsObject[i].meta.id === app.desiredWord) {
+						app.definitions.push(app.resultsObject[i]);
+					}
+					if (app.definitions[0] !== undefined) {
+						app.fetchThesaurus();
 					}
 				}
-			}
-		})
-		.then(function () {
-			if (app.definitions[0] !== undefined) {
-				fetch(app.thesaurusURL)
-					.then(function (res) {
-						return res.json();
-					})
-					.then(function (jsonResult) {
-						app.synonyms = [];
-
-						// Error handling for words that return array with similarly spelled words instead of literal synonyms
-						if (typeof jsonResult[0] == "string") {
-							app.synonyms.push(
-								`${capitalize(
-									app.desiredWord
-								)} has no known synonyms to display.`
-							);
-						} else {
-							for (let i = 0; i < jsonResult.length; i++) {
-								// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
-
-								if (
-									jsonResult[i].meta.id.match(app.regexSearch)
-								) {
-									app.synonyms.push(jsonResult);
-								} else if (
-									jsonResult[i].meta.id === app.desiredWord
-								) {
-									app.synonyms.push(
-										jsonResult[i].shortdef[0]
-									);
-								}
-							}
-
-							// Error handling for words with no relevant synonyms
-							if (app.synonyms.length === 0) {
-								app.synonyms.push(
-									`${capitalize(
-										app.desiredWord
-									)} has no known synonyms to display.`
-								);
-							}
-							// console.log(app.synonyms);
-						}
-					})
-					.then(function () {
-						fetch(url)
-							.then(function (res) {
-								return res.json();
-							})
-							.then(function (jsonResult) {
-								app.images = jsonResult.results;
-								// console.log(app.images);
-								app.displayResult(
-									app.definitions,
-									app.synonyms,
-									app.images
-								);
-							});
-					});
 			}
 		});
 };
 
-// Displaying the resullts on the page
-app.displayResult = function (definitionArray, synonymsArray, imageArray) {
-	// Creating an array with the definitions of the word to display to screen
+app.fetchThesaurus = () => {
+	// Calling API for Thesaurus object
+	app.thesaurusKey = "fb667759-bffa-458e-99cc-52ad3a241442";
+	app.thesaurusURL = new URL(
+		`https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${app.desiredWord}?key=${app.thesaurusKey}`
+	);
 
+	fetch(app.thesaurusURL)
+		.then(function (res) {
+			return res.json();
+		})
+		.then(function (jsonResult) {
+			app.resultsObject = jsonResult;
+			app.synonyms = [];
+
+			// Error handling for words that return array with similarly spelled words instead of literal synonyms
+			if (typeof app.resultsObject[0] == "string") {
+				app.synonyms.push(
+					`${capitalize(
+						app.desiredWord
+					)} has no known synonyms to display.`
+				);
+			} else {
+				for (let i = 0; i < app.resultsObject.length; i++) {
+					// Regular expression (RegExp) search to capture appropriate defitinitons using target meta.id with ":" followed by any digit from 0-9
+
+					if (app.resultsObject[i].meta.id.match(app.regexSearch)) {
+						app.synonyms.push(app.resultsObject);
+					} else if (
+						app.resultsObject[i].meta.id === app.desiredWord
+					) {
+						app.synonyms.push(app.resultsObject[i].shortdef[0]);
+					}
+				}
+
+				// Error handling for words with no relevant synonyms
+				if (app.synonyms.length === 0) {
+					app.synonyms.push(
+						`${capitalize(
+							app.desiredWord
+						)} has no known synonyms to display.`
+					);
+				}
+				app.fetchImages();
+			}
+		});
+};
+
+app.fetchImages = () => {
+	// Calling API for Image Array
+	app.imageKey = "ZszcTbGp8p_fudEWMdnRe90mPPyhfueWD_g4dy24bDE";
+	app.imageUrl = new URL(`https://api.unsplash.com/search/photos`);
+
+	const url = new URL(app.imageUrl);
+	url.search = new URLSearchParams({
+		client_id: app.imageKey,
+		query: `${app.desiredWord}`,
+		per_page: 3,
+	});
+
+	fetch(url)
+		.then(function (res) {
+			return res.json();
+		})
+		.then(function (jsonResult) {
+			app.images = jsonResult.results;
+			// console.log(app.images);
+			app.displayResult(app.definitions, app.synonyms, app.images);
+		});
+};
+
+// Displaying the results on the page
+app.displayResult = function (definitionArray, synonymsArray, imageArray) {
 	app.desiredWordHeader = document.querySelector(".desiredWord");
-	// Added the line below to clear the header element when repeating a search
 	app.desiredWordHeader.innerHTML = "";
 	const createH2 = document.createElement("h2");
 	createH2.innerHTML = capitalize(app.desiredWord);
@@ -195,7 +180,7 @@ app.displayResult = function (definitionArray, synonymsArray, imageArray) {
 
 	// Adding the aduio to the desired word
 
-	// Match the first letter of the word
+	// Match the first letter of the word to meet requirement for subdirectory in URL
 	const subdirectory = app.desiredWord.charAt(0);
 	//  Match the Id of the word to the  audio sound
 	if (app.definitions[0].hwi.prs === undefined) {
@@ -304,9 +289,7 @@ function emptyQueryErrorMessage() {
 	});
 }
 
-// Kicking off
 app.init = function () {
-	// calling the get result
 	app.getDesiredWord();
 };
 
